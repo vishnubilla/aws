@@ -1,0 +1,83 @@
+Resources:
+  myVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.20.0.0/16
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      InstanceTenancy: default
+      Tags:
+        - Key: Vishnu
+          Value: vpc1
+  mySubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: myVPC
+      CidrBlock: 10.20.1.0/24
+      Tags:
+      - Key: foo
+        Value: bar
+  mySubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: myVPC
+      CidrBlock: 10.20.2.0/24
+      Tags:
+      - Key: foo
+        Value: bar
+  myIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: mytestigw
+  AttachGateway:
+     Type: AWS::EC2::VPCGatewayAttachment
+     Properties:
+       VpcId:
+         Ref: myVPC
+       InternetGatewayId:
+         Ref: myIGW
+  myRouteTable:
+     Type: AWS::EC2::RouteTable
+     Properties:
+       VpcId:  
+         Ref: myVPC
+       Tags:
+       - Key: foo
+         Value: bar
+  subnetroute1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId:
+       Ref: myRouteTable
+      SubnetId:
+       Ref: mySubnet1
+  subnetroute2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId:
+       Ref: myRouteTable
+      SubnetId:
+       Ref: mySubnet2
+  myRoute:
+    Type: AWS::EC2::Route
+    Properties:
+       RouteTableId:
+         Ref: myRouteTable
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId:
+         Ref: myIGW
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId:
+         Ref: myVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
